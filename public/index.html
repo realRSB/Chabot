@@ -4,42 +4,49 @@
   <meta charset="UTF-8" />
   <title>Therapist Chatbot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #f0f2f5;
-      --text: #1e1e1e;
-      --bot: #e0e0e0;
-      --user: #4a90e2;
+      --bg: linear-gradient(145deg, #e0e0e0, #ffffff);
+      --bot-bg: rgba(255, 255, 255, 0.6);
+      --user-bg: rgba(74, 144, 226, 0.9);
+      --text: #333;
       --user-text: #fff;
-      --fade: fadeIn 0.3s ease-in-out;
+      --border-radius: 16px;
     }
+
     [data-theme="dark"] {
-      --bg: #121212;
+      --bg: linear-gradient(145deg, #1e1e1e, #2c2c2c);
+      --bot-bg: rgba(60, 60, 60, 0.6);
+      --user-bg: rgba(74, 144, 226, 0.9);
       --text: #f0f0f0;
-      --bot: #2c2c2c;
-      --user: #4a90e2;
       --user-text: #fff;
     }
 
     body {
+      font-family: 'Inter', sans-serif;
       background: var(--bg);
-      color: var(--text);
       margin: 0;
-      font-family: "Segoe UI", sans-serif;
+      color: var(--text);
       display: flex;
       flex-direction: column;
       height: 100vh;
+      overflow: hidden;
     }
+
     header {
-      padding: 1rem;
-      text-align: center;
+      padding: 1rem 2rem;
       font-size: 1.7rem;
-      background: var(--user);
-      color: var(--user-text);
+      font-weight: 600;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+
     #chat {
       flex: 1;
       overflow-y: auto;
@@ -47,136 +54,184 @@
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      scroll-behavior: smooth;
     }
+
     .message {
-      max-width: 75%;
-      padding: 0.75rem 1rem;
-      border-radius: 1rem;
-      animation: var(--fade);
-      white-space: pre-wrap;
-    }
-    .user {
-      background: var(--user);
-      color: var(--user-text);
-      align-self: flex-end;
-    }
-    .bot {
-      background: var(--bot);
-      align-self: flex-start;
-    }
-    #inputForm {
-      display: flex;
-      gap: 0.5rem;
+      max-width: 70%;
       padding: 1rem;
-      border-top: 1px solid #ccc;
-      background: var(--bg);
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      position: relative;
+      animation: fadeIn 0.4s ease-out;
+      backdrop-filter: blur(12px);
     }
-    #userInput {
-      flex: 1;
-      padding: 0.75rem;
-      font-size: 1rem;
-      border-radius: 10px;
-      border: 1px solid #aaa;
-    }
-    button {
-      background: var(--user);
-      color: var(--user-text);
-      border: none;
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-    #toggleDark {
-      background: transparent;
-      border: none;
-      font-size: 1rem;
-      cursor: pointer;
+
+    .user {
+      align-self: flex-end;
+      background: var(--user-bg);
       color: var(--user-text);
     }
 
+    .bot {
+      align-self: flex-start;
+      background: var(--bot-bg);
+    }
+
+    .avatar {
+      position: absolute;
+      top: -10px;
+      left: -50px;
+      font-size: 1.8rem;
+    }
+
+    .timestamp {
+      font-size: 0.7rem;
+      margin-top: 0.5rem;
+      opacity: 0.6;
+    }
+
+    #inputForm {
+      display: flex;
+      padding: 1rem;
+      gap: 0.75rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: var(--border-radius);
+      border: none;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 0.75rem 1.2rem;
+      border-radius: var(--border-radius);
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      background-color: #4a90e2;
+      color: white;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: #357dcf;
+    }
+
+    #clearBtn {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid #ccc;
+    }
+
+    #themeToggle {
+      background: transparent;
+      font-size: 1.4rem;
+      border: none;
+      cursor: pointer;
+    }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body data-theme="light">
   <header>
-    🧠 Therapist Chatbot
-    <button id="toggleDark">🌙</button>
+    🧠 Therapist Bot
+    <div>
+      <button id="themeToggle">🌙</button>
+    </div>
   </header>
 
-  <div id="chat"></div>
+  <main id="chat"></main>
 
   <form id="inputForm">
-    <input type="text" id="userInput" placeholder="Talk to me..." required />
+    <input type="text" id="userInput" placeholder="How are you feeling today?" autocomplete="off" required />
     <button type="submit">Send</button>
-    <button type="button" id="clearChat">Clear</button>
+    <button type="button" id="clearBtn">Clear</button>
   </form>
 
   <script>
-    const form = document.getElementById("inputForm");
-    const userInput = document.getElementById("userInput");
-    const chat = document.getElementById("chat");
-    const toggleDark = document.getElementById("toggleDark");
-    const clearBtn = document.getElementById("clearChat");
+    const form = document.getElementById('inputForm');
+    const input = document.getElementById('userInput');
+    const chat = document.getElementById('chat');
+    const themeToggle = document.getElementById('themeToggle');
+    const clearBtn = document.getElementById('clearBtn');
 
-    function addMessage(content, role) {
-      const div = document.createElement("div");
-      div.className = `message ${role}`;
-      div.textContent = content;
-      chat.appendChild(div);
+    let darkMode = false;
+
+    const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const appendMessage = (text, sender) => {
+      const msg = document.createElement('div');
+      msg.className = `message ${sender}`;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.textContent = sender === 'user' ? '🙂' : '🧠';
+
+      const time = document.createElement('div');
+      time.className = 'timestamp';
+      time.textContent = getTime();
+
+      msg.appendChild(avatar);
+      msg.appendChild(document.createTextNode(text));
+      msg.appendChild(time);
+
+      chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
-    }
+    };
 
-    function simulateTyping() {
-      const div = document.createElement("div");
-      div.className = "message bot";
-      div.id = "typing";
-      div.textContent = "Typing";
-      chat.appendChild(div);
+    const typingIndicator = () => {
+      const typing = document.createElement('div');
+      typing.className = 'message bot';
+      typing.id = 'typing';
+      typing.textContent = 'Typing';
+      chat.appendChild(typing);
       let dots = 0;
       const interval = setInterval(() => {
-        dots = (dots + 1) % 4;
-        div.textContent = "Typing" + ".".repeat(dots);
+        typing.textContent = 'Typing' + '.'.repeat((dots = (dots + 1) % 4));
       }, 500);
       return () => {
         clearInterval(interval);
-        div.remove();
+        typing.remove();
       };
-    }
+    };
 
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const msg = userInput.value.trim();
-      if (!msg) return;
+      const userMsg = input.value.trim();
+      if (!userMsg) return;
+      appendMessage(userMsg, 'user');
+      input.value = '';
+      const stopTyping = typingIndicator();
 
-      addMessage(msg, "user");
-      userInput.value = "";
-      const stopTyping = simulateTyping();
-
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg }),
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg })
       });
 
-      const data = await response.json();
+      const data = await res.json();
       stopTyping();
-      addMessage(data.reply, "bot");
+      appendMessage(data.reply, 'bot');
     });
 
-    toggleDark.addEventListener("click", () => {
-      const html = document.body;
-      const current = html.getAttribute("data-theme");
-      const newTheme = current === "dark" ? "light" : "dark";
-      html.setAttribute("data-theme", newTheme);
-      toggleDark.textContent = newTheme === "dark" ? "☀️" : "🌙";
+    themeToggle.addEventListener('click', () => {
+      darkMode = !darkMode;
+      document.body.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+      themeToggle.textContent = darkMode ? '☀️' : '🌙';
     });
 
-    clearBtn.addEventListener("click", () => {
-      chat.innerHTML = "";
+    clearBtn.addEventListener('click', () => {
+      chat.innerHTML = '';
     });
   </script>
 </body>
