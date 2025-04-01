@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Therapist Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background-color: #4A90E2;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      max-width: 70%;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      border-radius: 10px;
+      line-height: 1.4;
+    }
+    .user {
+      align-self: flex-end;
+      background-color: #DCF8C6;
+    }
+    .bot {
+      align-self: flex-start;
+      background-color: #eee;
+    }
+    #inputForm {
+      display: flex;
+      padding: 1rem;
+      background-color: #fff;
+      border-top: 1px solid #ccc;
+    }
+    #userInput {
+      flex: 1;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-left: 1rem;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      background-color: #4A90E2;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>🧠 Therapist Chatbot</header>
+  <div id="chat"></div>
+  <form id="inputForm">
+    <input type="text" id="userInput" placeholder="Talk to me..." required />
+    <button type="submit">Send</button>
+  </form>
+
+  <script>
+    const form = document.getElementById("inputForm");
+    const userInput = document.getElementById("userInput");
+    const chat = document.getElementById("chat");
+
+    function addMessage(text, className) {
+      const div = document.createElement("div");
+      div.className = "message " + className;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      addMessage(message, "user");
+      userInput.value = "";
+
+      addMessage("Typing...", "bot");
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await response.json();
+      chat.lastChild.remove(); // remove "Typing..."
+      addMessage(data.reply, "bot");
+    });
+  </script>
+</body>
+</html>
