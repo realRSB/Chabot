@@ -65,6 +65,7 @@
       position: relative;
       animation: fadeIn 0.4s ease-out;
       backdrop-filter: blur(12px);
+      white-space: pre-wrap;
     }
 
     .user {
@@ -136,6 +137,10 @@
       cursor: pointer;
     }
 
+    audio {
+      display: none;
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -158,12 +163,15 @@
     <button type="button" id="clearBtn">Clear</button>
   </form>
 
+  <audio id="sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_6f5bce1903.mp3?filename=calm-mind-113794.mp3" autoplay loop></audio>
+
   <script>
     const form = document.getElementById('inputForm');
     const input = document.getElementById('userInput');
     const chat = document.getElementById('chat');
     const themeToggle = document.getElementById('themeToggle');
     const clearBtn = document.getElementById('clearBtn');
+    const sound = document.getElementById('sound');
 
     let darkMode = false;
 
@@ -187,6 +195,7 @@
 
       chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
+      localStorage.setItem('chatHistory', chat.innerHTML);
     };
 
     const typingIndicator = () => {
@@ -222,7 +231,14 @@
       const data = await res.json();
       stopTyping();
       appendMessage(data.reply, 'bot');
+      speak(data.reply);
     });
+
+    const speak = (text) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.voice = speechSynthesis.getVoices().find(v => v.lang.startsWith('en'));
+      speechSynthesis.speak(utterance);
+    };
 
     themeToggle.addEventListener('click', () => {
       darkMode = !darkMode;
@@ -232,6 +248,13 @@
 
     clearBtn.addEventListener('click', () => {
       chat.innerHTML = '';
+      localStorage.removeItem('chatHistory');
+    });
+
+    window.addEventListener('load', () => {
+      const saved = localStorage.getItem('chatHistory');
+      if (saved) chat.innerHTML = saved;
+      sound.play();
     });
   </script>
 </body>
