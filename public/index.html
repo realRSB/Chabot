@@ -5,20 +5,40 @@
   <title>Therapist Chatbot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    :root {
+      --bg: #f0f2f5;
+      --text: #1e1e1e;
+      --bot: #e0e0e0;
+      --user: #4a90e2;
+      --user-text: #fff;
+      --fade: fadeIn 0.3s ease-in-out;
+    }
+    [data-theme="dark"] {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --bot: #2c2c2c;
+      --user: #4a90e2;
+      --user-text: #fff;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       margin: 0;
-      background-color: #f9f9f9;
+      font-family: "Segoe UI", sans-serif;
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
     header {
-      background-color: #4A90E2;
-      color: white;
       padding: 1rem;
       text-align: center;
-      font-size: 1.5rem;
+      font-size: 1.7rem;
+      background: var(--user);
+      color: var(--user-text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     #chat {
       flex: 1;
@@ -26,86 +46,137 @@
       padding: 1rem;
       display: flex;
       flex-direction: column;
+      gap: 1rem;
     }
     .message {
-      max-width: 70%;
-      margin-bottom: 1rem;
-      padding: 0.75rem;
-      border-radius: 10px;
-      line-height: 1.4;
+      max-width: 75%;
+      padding: 0.75rem 1rem;
+      border-radius: 1rem;
+      animation: var(--fade);
+      white-space: pre-wrap;
     }
     .user {
+      background: var(--user);
+      color: var(--user-text);
       align-self: flex-end;
-      background-color: #DCF8C6;
     }
     .bot {
+      background: var(--bot);
       align-self: flex-start;
-      background-color: #eee;
     }
     #inputForm {
       display: flex;
+      gap: 0.5rem;
       padding: 1rem;
-      background-color: #fff;
       border-top: 1px solid #ccc;
+      background: var(--bg);
     }
     #userInput {
       flex: 1;
       padding: 0.75rem;
       font-size: 1rem;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      border-radius: 10px;
+      border: 1px solid #aaa;
     }
     button {
-      margin-left: 1rem;
+      background: var(--user);
+      color: var(--user-text);
+      border: none;
       padding: 0.75rem 1rem;
       font-size: 1rem;
-      border: none;
-      border-radius: 5px;
-      background-color: #4A90E2;
-      color: white;
+      border-radius: 10px;
       cursor: pointer;
+    }
+    #toggleDark {
+      background: transparent;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      color: var(--user-text);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
-<body>
-  <header>🧠 Therapist Chatbot</header>
+<body data-theme="light">
+  <header>
+    🧠 Therapist Chatbot
+    <button id="toggleDark">🌙</button>
+  </header>
+
   <div id="chat"></div>
+
   <form id="inputForm">
     <input type="text" id="userInput" placeholder="Talk to me..." required />
     <button type="submit">Send</button>
+    <button type="button" id="clearChat">Clear</button>
   </form>
 
   <script>
     const form = document.getElementById("inputForm");
     const userInput = document.getElementById("userInput");
     const chat = document.getElementById("chat");
+    const toggleDark = document.getElementById("toggleDark");
+    const clearBtn = document.getElementById("clearChat");
 
-    function addMessage(text, className) {
+    function addMessage(content, role) {
       const div = document.createElement("div");
-      div.className = "message " + className;
-      div.textContent = text;
+      div.className = `message ${role}`;
+      div.textContent = content;
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
     }
 
+    function simulateTyping() {
+      const div = document.createElement("div");
+      div.className = "message bot";
+      div.id = "typing";
+      div.textContent = "Typing";
+      chat.appendChild(div);
+      let dots = 0;
+      const interval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        div.textContent = "Typing" + ".".repeat(dots);
+      }, 500);
+      return () => {
+        clearInterval(interval);
+        div.remove();
+      };
+    }
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const message = userInput.value.trim();
-      if (!message) return;
+      const msg = userInput.value.trim();
+      if (!msg) return;
 
-      addMessage(message, "user");
+      addMessage(msg, "user");
       userInput.value = "";
+      const stopTyping = simulateTyping();
 
-      addMessage("Typing...", "bot");
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({ message: msg }),
       });
 
       const data = await response.json();
-      chat.lastChild.remove(); // remove "Typing..."
+      stopTyping();
       addMessage(data.reply, "bot");
+    });
+
+    toggleDark.addEventListener("click", () => {
+      const html = document.body;
+      const current = html.getAttribute("data-theme");
+      const newTheme = current === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", newTheme);
+      toggleDark.textContent = newTheme === "dark" ? "☀️" : "🌙";
+    });
+
+    clearBtn.addEventListener("click", () => {
+      chat.innerHTML = "";
     });
   </script>
 </body>
